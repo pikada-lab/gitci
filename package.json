@@ -15,5 +15,10 @@
     "typescript": "^4.3.5"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "git-commits": "^1.3.0",
+    "git-spawned-stream": "^0.1.1",
+    "stream-to-promise": "^3.0.0"
+  }
 }
