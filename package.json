@@ -19,6 +19,7 @@
   "dependencies": {
     "git-commits": "^1.3.0",
     "git-spawned-stream": "^0.1.1",
+    "js-yaml": "^4.1.0",
     "stream-to-promise": "^3.0.0"
   }
 }

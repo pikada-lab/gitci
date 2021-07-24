@@ -1,45 +1,33 @@
-import { spawn } from "child_process";
+
 import { Commit } from "../git/Commit";
+import { Job } from "./Job";
 
-export class JobSetting {
+export class JobHandler { 
 
-    private versionMajor = 2;
-    private versionMinor = 24;
+    private lastCommit: Commit;
+
     constructor(
         private strategy: JobStrategy,
-        public readonly timeout: number = 60,
-        public readonly projectPath: string = "/") {
+        private job: Job) {
 
     }
-
-    async check() {
-        return new Promise((resolve, reject) => {
-            const git = spawn("git", ["--version"]);
-            git.stdout.on("data", (chunk: Buffer) => {
-                const version = /(\d+)\.(\d+)\.\d+/i.exec(chunk.toString("utf8").substr(12, 7));
-                if (!version || !version[1] || !version[2]) {
-                    return reject("version problem");
-                }
-                if (+version[1] == this.versionMajor && +version[2] >= this.versionMinor) {
-                    console.log("SUCCESS VERSION");
-                    resolve(true); 
-                } else {
-                    console.log("VERSION NOT SUPPORT");
-                    resolve(false);
-                }
-                git.kill();
-            });
-            git.stderr.on("data", (err) => {
-                git.kill();
-                reject(err);
-            })
-        })
-    }
+ 
     isHandle(commit: Commit) {
-       return this.strategy.execute(commit);
+        return this.strategy.execute(commit);
     }
 
 
+    setLastCommit(commit: Commit) {
+        this.lastCommit = commit;
+    }
+
+    getLastCommit(): Commit {
+        return this.lastCommit;
+    }
+
+    async execute(): Promise<void> {
+        await this.job.executed()
+    }
 }
 
 export interface JobStrategy {
@@ -90,12 +78,15 @@ export class JobStrategyTag implements JobStrategy {
 
 
 export class JobStrategyBranch implements JobStrategy {
-    private branch: RegExp;
+    private branch: string;
     constructor(branch: string) {
-        this.branch = new RegExp(`(^|\s)(${branch})(,|$)`, 'i');
+        this.branch = branch;
     }
     execute(commit: Commit): boolean {
-        return this.branch.test(commit.branch);
+        return !!~commit.branch.findIndex(r => {
+            console.log(this.branch, r, this.branch === r)
+           return this.branch === r
+        });
     }
 }
 
