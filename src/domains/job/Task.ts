@@ -6,44 +6,61 @@ import { GitService } from "./GitService";
 import { JobHandler } from "./JobHandler";
 import { JobProject } from "./JobProject";
 import streamToPromise from "stream-to-promise";
+export enum TaskStatus {
+    PENDING = 1,
+    EXECUTE,
+    BUILDING,
+    FINISHED,
+    ERROR
+}
 
+export interface TaskModel {
+    path: string;
+    status: TaskStatus;
+}
 export class Task {
-    private url: string;
+    private path: string;
+    public status = TaskStatus.PENDING;
     constructor(
         private gitService: GitService,
         private jobProject: JobProject,
         private handler: JobHandler
-    ) {
+    ) { }
 
-        this.url = join(tmpdir(), Math.round(Math.random() * 100000000).toString(16));
+    getModel(): TaskModel {
+        return {
+            path: this.path,
+            status: this.status
+        }
     }
 
     async before() {
-        console.log("START TASK", this.url);
-        const commit = this.handler.getLastCommit();
-        // создаём временную директорию
-        await mkdir(this.url, 0o777);
-        // клонируем репозиторий
-        let result = await this.gitService.gitCommand(
-            this.url,
-            'clone', this.jobProject.GitURL,
-            "--branch", commit.branch[0],
-            "--single-branch"
-        );
-        console.log(result);
-        // переходим в папку
-        const ls = await streamToPromise(spawn("ls").stdout);
-        const dir = ls.split("\n").map(r => r.trim())[0];
-        this.url = join(this.url, dir)
 
+        this.path = join(tmpdir(), Math.round(Math.random() * 100000000).toString(16));
+        console.log("START TASK", this.path);
+        const commit = this.handler.LastCommit;
+        // создаём временную директорию
+        await mkdir(this.path, 0o777);
+        // клонируем репозиторий
+        await this.gitService.clone(this.path, this.jobProject.GitURL, commit.branch[0])
+        // переходим в папку
+        const ls = await streamToPromise(spawn("ls", [], { cwd: this.path }).stdout);
+        const dir = ls.toString("utf8").split("\n").map(r => r.trim())[0];
+        this.path = join(this.path, dir);
         // делаем переход на коммит
-        await this.gitService.gitCommand(this.url, "reset", "--hard", commit.hash);
+        await this.gitService.gitCommand(this.path, "reset", "--hard", commit.hash);
         // this.gitService.gitCommand(this.jobProject.projectPath, )
     }
-    async start(before?: () => void, after?: () => void) {
-        before?.();
-        this.before();
-        await this.handler.execute();
-        after?.();
+    async start() {
+        try {
+            this.status = TaskStatus.EXECUTE;
+            await this.before();
+            this.status = TaskStatus.BUILDING;
+            await this.handler.execute(this.path);
+            this.status = TaskStatus.FINISHED;
+        } catch (ex) {
+            console.log(ex);
+            this.status = TaskStatus.ERROR;
+        }
     }
 }

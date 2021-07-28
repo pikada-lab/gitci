@@ -1,37 +1,54 @@
 
-import { Commit } from "../git/Commit";
-import { Job } from "./Job";
+import { Commit, CommitModel } from "../git/Commit";
+import { Job, JobModel } from "./Job";
 
-export class JobHandler { 
+export class JobHandlerModel {
+        strategy: string;
+        job: JobModel;
+        lastCommit: CommitModel;
+}
+
+export class JobHandler {
+
 
     private lastCommit: Commit;
 
-    constructor(
-        private strategy: JobStrategy,
-        private job: Job) {
-
+    get LastCommit() {
+        return this.lastCommit;
     }
- 
-    isHandle(commit: Commit) {
-        return this.strategy.execute(commit);
-    }
-
-
-    setLastCommit(commit: Commit) {
+    set LastCommit(commit: Commit) {
         this.lastCommit = commit;
     }
 
-    getLastCommit(): Commit {
-        return this.lastCommit;
+    constructor(
+        private strategy: JobStrategy,
+        private job: Job,
+        private environment: { [key: string]: string }
+    ) { }
+
+    isHandle(commit: Commit) {
+        if (!this.strategy.execute(commit)) return false;
+        if (this.lastCommit && this.lastCommit.date >= commit.date) return false
+        this.lastCommit = commit;
+        return true;
     }
 
-    async execute(): Promise<void> {
-        await this.job.executed()
+    async execute(path: string): Promise<void> {
+        await this.job.executed(path, this.environment)
+    }
+
+    getModel(): JobHandlerModel {
+        return {
+            strategy: this.strategy.toString(),
+            job: this.job.getModel(),
+            lastCommit: this.lastCommit?.getModel()
+        }
     }
 }
 
 export interface JobStrategy {
     execute(commit: Commit): boolean;
+    toString(): string;
 }
 
 export class JobStrategyAnd implements JobStrategy {
@@ -41,6 +58,10 @@ export class JobStrategyAnd implements JobStrategy {
     }
     execute(commit: Commit): boolean {
         return !~this.strategies.findIndex(r => !r.execute(commit));
+    }
+
+    toString() {
+        return this.strategies.map(r => r.toString()).join(" AND ");
     }
 }
 
@@ -53,6 +74,10 @@ export class JobStrategyOr implements JobStrategy {
     execute(commit: Commit): boolean {
         return !!~this.strategies.findIndex(r => r.execute(commit));
     }
+
+    toString() {
+        return "(" + this.strategies.map(r => r.toString()).join(") OR (") + ")";
+    }
 }
 
 
@@ -62,31 +87,37 @@ export class JobStrategyNot implements JobStrategy {
     execute(commit: Commit): boolean {
         return !this.strategy.execute(commit);
     }
+    toString() {
+        return "!" + this.strategy.toString();
+    }
 }
 
 
 export class JobStrategyTag implements JobStrategy {
     private tag: RegExp;
-    constructor(tag: string) {
-        this.tag = new RegExp(`(^|\s)(${tag})(,|$)`, 'i');
+    constructor(private tagString: string) {
+        this.tag = new RegExp(`(^|\s)(${tagString})(,|$)`, 'i');
     }
 
     execute(commit: Commit): boolean {
         return this.tag.test(commit.tag);
     }
+    toString() {
+        return "$tag like " + this.tagString.toString();
+    }
 }
 
 
 export class JobStrategyBranch implements JobStrategy {
-    private branch: string;
-    constructor(branch: string) {
-        this.branch = branch;
+
+    constructor(private branch: string) {
     }
     execute(commit: Commit): boolean {
-        return !!~commit.branch.findIndex(r => {
-            console.log(this.branch, r, this.branch === r)
-           return this.branch === r
-        });
+        return !!~commit.branch.findIndex(r => this.branch === r);
+    }
+
+    toString() {
+        return "$branch like " + this.branch.toString();
     }
 }
 

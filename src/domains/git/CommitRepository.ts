@@ -4,7 +4,7 @@ import { Commit } from "./Commit";
 export class CommitRepository {
     private HASH_INDEX = new Map<string, Commit>();
     private BRANCH_INDEX = new Map<string, Commit[]>();
-    private commits = [];
+    private commits: Commit[] = [];
     public events = new EventEmitter();
     constructor() {
     }
