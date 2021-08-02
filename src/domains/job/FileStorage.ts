@@ -1,8 +1,7 @@
 import { access, writeFile, readFile } from "fs/promises";
-import { ProjectModel } from "./JobProject";
 
-export class FileStorage {
-    db: ProjectModel[] = []; 
+export class FileStorage<T> {
+    db: T[] = []; 
     constructor(private storeFile: string) { }
 
     async update() {
@@ -16,11 +15,11 @@ export class FileStorage {
         }
     }
 
-    getAll(): ProjectModel[] {
+    getAll(): T[] {
         return this.db;
     }
 
-    async save(projects: ProjectModel[]) {
+    async save(projects: T[]) {
         await writeFile(this.storeFile, JSON.stringify(projects), 'utf8'); 
         this.db = projects;
     }

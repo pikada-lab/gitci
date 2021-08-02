@@ -1,28 +1,28 @@
-import { join, resolve } from "path";
-import { Commit } from "../git/Commit";
-import { CommitRepository } from "../git/CommitRepository";
-import { JobProject } from "./JobProject";
-import { Task } from "./Task";
+ 
+import { Commit } from "../git/Commit"; 
 import { GitService } from "./GitService";
 
-export enum WhatcherStatus {
+export interface Watcherable {
+    getPath() : string;
+    addCommit(commit: Commit): void;
+}
+export enum WatcherStatus {
     ACTIVE = 1,
     STOP
 }
 
-export class Whatcher {
+export class Watcher {
 
     private repoPath: string;
 
 
-    private status = WhatcherStatus.STOP;
+    private status = WatcherStatus.STOP;
     private timeStart: Date;
     private timeLastPull: Date;
     private timer: NodeJS.Timer;
 
-    constructor(private gitService: GitService, private jobProject: JobProject) {
-        this.repoPath = resolve(jobProject.projectPath);
-
+    constructor(private gitService: GitService, private jobProject: Watcherable) {
+        this.repoPath =  jobProject.getPath();
     }
 
     /**
@@ -51,16 +51,16 @@ export class Whatcher {
         if (this.timer) {
             clearTimeout(this.timer);
         }
-        this.status = WhatcherStatus.STOP;
+        this.status = WatcherStatus.STOP;
     }
 
     async start() {
-        if (this.status === WhatcherStatus.STOP) {
+        if (this.status === WatcherStatus.STOP) {
             this.timeStart = new Date();
-            this.status = WhatcherStatus.ACTIVE;
+            this.status = WatcherStatus.ACTIVE;
         }
         await this.handle();
-        if (WhatcherStatus.ACTIVE) {
+        if (WatcherStatus.ACTIVE) {
             await this.timeout(10000);
             await this.start();
         }

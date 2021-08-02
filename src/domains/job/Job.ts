@@ -16,19 +16,7 @@ export class Job {
     async executed(path: string, environment: { [key: string]: string }) {
 
         return new Promise(async (resolve, reject) => {
-
-
-            /**
-             * START JOB: Test job
-             * ```
-                $ export API_URL=/api
-                $ echo 'start ' $API_URL
-                $ npm --version
-                start  /api
-                $ exit
-                7.11.0
-                ```
-             */
+ 
             // spawn bash shell
             console.log(`START JOB: ${this.name}`);
             const bash = spawn("/bin/bash", [], {

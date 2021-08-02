@@ -24,8 +24,6 @@ export class GitService {
 
     async clone(repoPath: string, remoteGitHTTP: string, branch?: string) {
         const arg = [
-            //    `--git-dir=${repoPath}/.git`, 
-            // `--work-tree=${repoPath}`,
             'clone', remoteGitHTTP
         ];
         if (branch) {
