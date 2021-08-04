@@ -12,10 +12,10 @@ export interface ProjectModel {
   git: string;
   path: string;
   handlers: PipelineModel[];
-  tasks: TaskModel[];
   commits: CommitModel[];
 }
-export class JobProject implements Watcherable {
+
+export class Project implements Watcherable {
   // Какие нужны программы -> чекнуть, есть ли они
   private handlers: Pipeline[] = [];
   private task: Task[] = [];
@@ -24,13 +24,20 @@ export class JobProject implements Watcherable {
 
   private repository = new CommitRepository();
 
+  /**
+   * Добавление задачи
+   * ```typescript
+   * events.on("commit", (t: Task) => void );
+   * ```
+   * 
+   */
   events = new EventEmitter();
 
   constructor(
     public id: string,
     private GitURL: string,
     private name: string
-  ) {}
+  ) { }
 
   getRemoteGit() {
     return this.GitURL;
@@ -39,10 +46,9 @@ export class JobProject implements Watcherable {
   setPath(path: string) {
     this.projectPath = join(
       path,
-      this.GitURL.split("/")[this.GitURL.split("/").length - 1].replace(
-        ".git",
-        ""
-      )
+      this.GitURL
+        .split("/")[this.GitURL.split("/").length - 1]
+        .replace(".git", "")
     );
   }
 
@@ -52,37 +58,25 @@ export class JobProject implements Watcherable {
 
   addPipeline(handler: Pipeline) {
     this.handlers.push(handler);
-    for (let commit of this.repository.getAll()) {
-      if (handler.isHandle(commit)) continue;
-      // Исполнитьсв
-      this.events.emit("handle", handler);
-      this.addTask(new Task(this.getRemoteGit(), handler));
-    }
   }
+
   addCommit(commit: Commit) {
-    console.log("add comit", commit.getModel());
+    // console.log("add comit", commit.getModel());
     this.repository.add(commit);
     this.tryHandle(commit);
   }
 
   private tryHandle(commit) {
-    console.log("try handle", commit.getModel());
+    // console.log("try handle", commit.getModel());
     for (const handler of this.handlers) {
       const isHandle = handler.isHandle(commit);
-      console.log("> handle", isHandle, handler.getModel());
+      // console.log("> handle", isHandle, handler.getModel());
       if (!isHandle) continue;
-      this.events.emit("handle", handler);
-      this.addTask(new Task(this.getRemoteGit(), handler));
+      const task = new Task(this.getRemoteGit(), handler);
+      console.debug("ADD TASK", task.getName());
+      this.events.emit("task", task);
     }
   }
-
-  addTask(task: Task) {
-    console.log("ADD TASK", task.getModel());
-    this.task.push(task);
-    this.start();
-  }
-
- 
 
   getModel(): ProjectModel {
     return {
@@ -91,7 +85,6 @@ export class JobProject implements Watcherable {
       git: this.GitURL,
       path: this.projectPath,
       handlers: this.handlers.map((r) => r.getModel()),
-      tasks: [...this.task, ...this.taskExecuted].map((r) => r.getModel()),
       commits: this.repository.getAll().map((r) => r.getModel()),
     };
   }
