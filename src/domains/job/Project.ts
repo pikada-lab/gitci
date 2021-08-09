@@ -11,13 +11,13 @@ export interface ProjectModel {
   name: string;
   git: string;
   path: string;
-  handlers: PipelineModel[];
+  pipelines: PipelineModel[];
   commits: CommitModel[];
 }
 
 export class Project implements Watcherable {
   // Какие нужны программы -> чекнуть, есть ли они
-  private handlers: Pipeline[] = [];
+  private pipelines: Pipeline[] = [];
   private task: Task[] = [];
   private taskExecuted: Task[] = [];
   private projectPath: string;
@@ -56,8 +56,8 @@ export class Project implements Watcherable {
     return this.projectPath;
   }
 
-  addPipeline(handler: Pipeline) {
-    this.handlers.push(handler);
+  addPipeline(pipline: Pipeline) {
+    this.pipelines.push(pipline);
   }
 
   addCommit(commit: Commit) {
@@ -66,14 +66,12 @@ export class Project implements Watcherable {
     this.tryHandle(commit);
   }
 
-  private tryHandle(commit) {
-    // console.log("try handle", commit.getModel());
-    for (const handler of this.handlers) {
-      const isHandle = handler.isHandle(commit);
-      // console.log("> handle", isHandle, handler.getModel());
+  private tryHandle(commit) { 
+    for (const pipline of this.pipelines) {
+      const isHandle = pipline.isHandle(commit); 
       if (!isHandle) continue;
-      const task = new Task(this.getRemoteGit(), handler);
-      console.debug("ADD TASK", task.getName());
+      const task = new Task(this.getRemoteGit(), commit);
+      pipline.configure(task); 
       this.events.emit("task", task);
     }
   }
@@ -84,7 +82,7 @@ export class Project implements Watcherable {
       name: this.name,
       git: this.GitURL,
       path: this.projectPath,
-      handlers: this.handlers.map((r) => r.getModel()),
+      pipelines: this.pipelines.map((r) => r.getModel()),
       commits: this.repository.getAll().map((r) => r.getModel()),
     };
   }

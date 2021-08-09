@@ -2,11 +2,13 @@ import { Commit, CommitModel } from "../git/Commit";
 import { Job, JobModel } from "./Job";
 import { StategyModel } from "./strategy/StategyModel";
 import { JobStrategy } from "./strategy/JobStrategy";
+import { Task } from "./Task";
 
 export class PipelineModel {
   id: string;
+  name: string;
   strategy: string;
-  job: JobModel;
+  jobs: JobModel[];
   lastCommit: CommitModel;
   environment: { [key: string]: string };
 }
@@ -23,9 +25,10 @@ export class Pipeline {
 
   constructor(
     private id: string,
+    private name: string,
+    private environment: { [key: string]: string },
     private strategy: JobStrategy,
-    private job: Job,
-    private environment: { [key: string]: string }
+    private jobs: Job[]
   ) { }
 
   isHandle(commit: Commit) {
@@ -40,18 +43,20 @@ export class Pipeline {
     }
   }
 
-  async execute(path: string): Promise<void> {
-    await this.job.executed(path, this.environment);
-  }
-  stop() {
-    this.job.stop();
+  configure(t: Task) {
+    t.configure(
+      this.name,
+      this.jobs.map(r => r.getModel()),
+      this.environment
+    )
   }
 
   getModel(): PipelineModel {
     return {
       id: this.id,
+      name: this.name,
       strategy: this.strategy.toString(),
-      job: this.job.getModel(),
+      jobs: this.jobs.map(r => r.getModel()),
       lastCommit: this.lastCommit?.getModel(),
       environment: this.environment,
     };

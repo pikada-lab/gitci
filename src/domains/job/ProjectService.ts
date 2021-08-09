@@ -11,6 +11,7 @@ import { Commit } from "../git/Commit";
 import { Task } from "./Task";
 import { EventEmitter } from "events";
 import { ConditionParser } from "./strategy/ConditionParser";
+import { pipeline } from "stream";
 
 export class ProjectService {
     private projects: Project[] = [];
@@ -31,12 +32,10 @@ export class ProjectService {
                 item.name
             );
 
-            item.handlers.forEach(handler => {
-                // const strategy = ParseStrategy(handler.strategy)
-                const strategy = ConditionParser(handler.strategy)
-                // TODO: Job to Job[]
-                const job = new Job(handler.job.name, handler.job.scripts);
-                project.addPipeline(new Pipeline(handler.id, strategy, job, handler.environment));
+            item.pipelines.forEach(pipeline => {
+                const strategy = ConditionParser(pipeline.strategy)
+                const jobs = pipeline.jobs.map(job => new Job(job.name, job.scripts));
+                project.addPipeline(new Pipeline(pipeline.id, pipeline.name, pipeline.environment, strategy, jobs));
             })
 
             item.commits.forEach(commit => {
@@ -71,15 +70,19 @@ export class ProjectService {
         // из базы данных подгружаем подробности по задачам и работам
         const strategy = new JobStrategyBranch("master");
         //new JobStrategyOr(new JobStrategyBranch("dev"), new JobStrategyBranch("test"));
-        const pipe = new Pipeline(this.util.IDGen(), strategy,
-            new Job("Test job", [
+        const pipe = new Pipeline(
+            this.util.IDGen(),
+            'Test job',
+            { "TOKEN_ICQ": "001.0232927109.1999608478:751212693" },
+            strategy,
+            [new Job("Test job", [
                 "npm ci",
                 "npm install typescript",
                 "npm install codecov ",
                 "tsc",
                 "npm test",
                 "codecov -f coverage/*.json"
-            ]), { "TOKEN_ICQ": "001.0232927109.1999608478:751212693" });
+            ])]);
 
         project.addPipeline(pipe);
         await this.init(project);
@@ -106,6 +109,5 @@ export class ProjectService {
     getProjects() {
         return this.projects;
     }
-
 
 }
