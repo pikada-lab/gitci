@@ -31,7 +31,7 @@ export class ProjectService {
 
             item.pipelines.forEach(pipeline => {
                 const strategy = ConditionParser(pipeline.strategy)
-                const steps = pipeline.steps.map(step => new Step(step.name, step.scripts));
+                const steps = pipeline.steps.map(step => new Step(step.id, step.name, step.scripts));
                 project.addPipeline(new Pipeline(pipeline.id, pipeline.name, pipeline.environment, strategy, steps));
             })
 
@@ -72,7 +72,7 @@ export class ProjectService {
             'Test pipe',
             { "TOKEN_ICQ": "001.0232927109.1999608478:751212693" },
             strategy,
-            [new Step("Test pipe", [
+            [new Step("1f90da09","Test pipe", [
                 "npm ci",
                 "npm install typescript",
                 "npm install codecov ",

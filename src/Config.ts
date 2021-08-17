@@ -6,6 +6,7 @@ export interface ConfigLike {
     root: string;
     timeout: number;
     key: string;
+    storeFile: string;
 }
  
 export class Config {

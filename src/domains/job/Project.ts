@@ -58,18 +58,26 @@ export class Project implements Watcherable {
     this.pipelines.push(pipline);
   }
 
+  getPipelines() {
+    return this.pipelines;
+  }
+
+  removePipeline(pipeId: string) {
+    this.pipelines = this.pipelines.filter(r => r.getId() != pipeId);
+  }
+
   addCommit(commit: Commit) {
     // console.log("add comit", commit.getModel());
     this.repository.add(commit);
     this.tryHandle(commit);
   }
 
-  private tryHandle(commit) { 
+  private tryHandle(commit) {
     for (const pipline of this.pipelines) {
-      const isHandle = pipline.isHandle(commit); 
+      const isHandle = pipline.isHandle(commit);
       if (!isHandle) continue;
       const task = new Task(this.getRemoteGit(), commit);
-      pipline.configure(task); 
+      pipline.configure(task);
       this.events.emit("task", task);
     }
   }

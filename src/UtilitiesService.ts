@@ -9,7 +9,7 @@ export class UtilitiesService {
     return `${this.part()}-${this.part()}-${this.part()}-${this.part()}`;
   }
   IDGen() {
-    return `${this.part()}}`;
+    return `${this.part()}`;
   }
 
   getTempPath() {

@@ -31,6 +31,10 @@ export class Pipeline {
     private steps: Step[]
   ) { }
 
+  getId() {
+    return this.id;
+  }
+
   isHandle(commit: Commit) {
     try {
       if (!this.strategy.execute(commit)) return false;
@@ -61,6 +65,14 @@ export class Pipeline {
       environment: this.environment,
     };
   }
+
+  pushStep(step: Step) {
+    this.steps.push(step);
+  }
+  removeStep(stepId: string) {
+    this.steps = this.steps.filter(r => r.getID() != stepId);
+  }
+
 }
 
 
