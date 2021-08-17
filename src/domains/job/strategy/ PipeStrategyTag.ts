@@ -1,8 +1,8 @@
 import { Commit } from "../../git/Commit";
-import { JobStrategy } from "./JobStrategy";
+import { PipeStrategy } from "./PipeStrategy";
 
 
-export class JobStrategyTag implements JobStrategy {
+export class PipeStrategyTag implements PipeStrategy {
   private tag: RegExp;
   constructor(private tagString: string) {
     this.tag = new RegExp(`(^|\s)(${tagString})(,|$)`, "i");

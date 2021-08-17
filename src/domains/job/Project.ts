@@ -18,8 +18,6 @@ export interface ProjectModel {
 export class Project implements Watcherable {
   // Какие нужны программы -> чекнуть, есть ли они
   private pipelines: Pipeline[] = [];
-  private task: Task[] = [];
-  private taskExecuted: Task[] = [];
   private projectPath: string;
 
   private repository = new CommitRepository();

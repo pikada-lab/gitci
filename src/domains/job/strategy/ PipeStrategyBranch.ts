@@ -1,8 +1,8 @@
 import { Commit } from "../../git/Commit";
-import { JobStrategy } from "./JobStrategy";
+import { PipeStrategy } from "./PipeStrategy";
 
 
-export class JobStrategyBranch implements JobStrategy {
+export class PipeStrategyBranch implements PipeStrategy {
   constructor(private branch: string) { }
 
   execute(commit: Commit): boolean {

@@ -21,8 +21,8 @@ export class Watcher {
     private timeLastPull: Date;
     private timer: NodeJS.Timer;
 
-    constructor(private gitService: GitService, private jobProject: Watcherable) {
-        this.repoPath = jobProject.getPath();
+    constructor(private gitService: GitService, private project: Watcherable) {
+        this.repoPath = this.project.getPath();
     }
 
     /**
@@ -85,6 +85,7 @@ export class Watcher {
         // TODO: NOT GOOD CONDITION
         if (response.startsWith("Already up to date.")) {
             // console.log("no pull", branch);
+            // TODO: Add last update time, count, time
         } else {
 
             console.log("execute pull", branch);
@@ -93,7 +94,7 @@ export class Watcher {
 
             // commits.reverse();
             commits.forEach(commit => {
-                this.jobProject.addCommit(commit);
+                this.project.addCommit(commit);
             });
             console.log("END Execute pull", branch);
         }

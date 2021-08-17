@@ -1,9 +1,9 @@
-import { JobStrategyBranch } from "./JobStrategyBranch";
-import { JobStrategyTag } from "./JobStrategyTag";
-import { JobStrategyNot } from "./JobStrategyNot";
-import { JobStrategyOr } from "./JobStrategyOr";
-import { JobStrategyAnd } from "./JobStrategyAnd";
-import { JobStrategy } from "./JobStrategy";
+import { PipeStrategyBranch } from "./ PipeStrategyBranch";
+import { PipeStrategyTag } from "./ PipeStrategyTag";
+import { PipeStrategyNot } from "./ PipeStrategyNot";
+import { PipeStrategyOr } from "./PipeStrategyOr";
+import { PipeStrategyAnd } from "./ PipeStrategyAnd";
+import { PipeStrategy } from "./PipeStrategy";
 
 /**
  * Преобразует строку в композицию классов стратегий  JobStrategyAnd, JobStrategyBranch, JobStrategyNot, JobStrategyOr, JobStrategyTag 
@@ -22,9 +22,9 @@ import { JobStrategy } from "./JobStrategy";
  *  }
  *   ```
  * @param exor $branch like dev OR ($tag like v1 AND $branch like test)
- * @returns {JobStrategy} new JobStrategyOr(new JobStrategyBranch('dev), new JobStrategyAnd(new  JobStrategyTag('v1'), new  JobStrategyBranch('test')))
+ * @returns {PipeStrategy} new JobStrategyOr(new JobStrategyBranch('dev), new JobStrategyAnd(new  JobStrategyTag('v1'), new  JobStrategyBranch('test')))
  */
-export function ConditionParser(exor: string): JobStrategy {
+export function ConditionParser(exor: string): PipeStrategy {
     const terms = exor.match(/!|[()]|AND|OR|((?:\$branch|\$tag)\s*(?:not\s*)?like)\s*(\w{1}(?:[a-z0-9_\-\/])+)/ig).map(t => t.replace(/(")/g, ''));
     const peek = () => terms[0] || ''
     const get = () => terms.shift();
@@ -42,18 +42,18 @@ export function ConditionParser(exor: string): JobStrategy {
         let denie = isDenie(peek());
         const result = new cnst(getVarible(get()));
         if (denie) {
-            return new JobStrategyNot(result);
+            return new PipeStrategyNot(result);
         }
         return result;
     }
-    const factor: () => JobStrategy = () => {
+    const factor: () => PipeStrategy = () => {
 
         if (isBranch(peek())) {
-            return getStrategy(JobStrategyBranch);
+            return getStrategy(PipeStrategyBranch);
         }
 
         if (isTag(peek())) {
-            return getStrategy(JobStrategyTag);
+            return getStrategy(PipeStrategyTag);
         }
 
         if (accept('(')) {
@@ -64,23 +64,23 @@ export function ConditionParser(exor: string): JobStrategy {
         }
         if (accept('!')) {
             get();
-            return new JobStrategyNot(factor());
+            return new PipeStrategyNot(factor());
         }
         return 0;
     }
 
-    const term: () => JobStrategy = () => {
+    const term: () => PipeStrategy = () => {
         let result = factor();
         while (accept("AND")) {
-            calc('AND', () => result = new JobStrategyAnd(result, factor()))
+            calc('AND', () => result = new PipeStrategyAnd(result, factor()))
         }
         return result;
     }
 
-    const exoression: () => JobStrategy = () => {
+    const exoression: () => PipeStrategy = () => {
         let result = term();
         while (accept("OR")) {
-            calc('OR', () => result = new JobStrategyOr(result, term()))
+            calc('OR', () => result = new PipeStrategyOr(result, term()))
         }
         return result;
     }

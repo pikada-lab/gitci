@@ -1,10 +1,10 @@
 import { Commit } from "../../git/Commit";
-import { JobStrategy } from "./JobStrategy";
+import { PipeStrategy } from "./PipeStrategy";
 
 
-export class JobStrategyOr implements JobStrategy {
-  private strategies: JobStrategy[];
-  constructor(...strategy: JobStrategy[]) {
+export class PipeStrategyOr implements PipeStrategy {
+  private strategies: PipeStrategy[];
+  constructor(...strategy: PipeStrategy[]) {
     this.strategies = strategy;
   }
   execute(commit: Commit): boolean {

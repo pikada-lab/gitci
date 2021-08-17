@@ -1,17 +1,17 @@
 import { StategyModel } from "./StategyModel";
-import { JobStrategyBranch } from "./JobStrategyBranch";
-import { JobStrategyTag } from "./JobStrategyTag";
-import { JobStrategyOr } from "./JobStrategyOr";
-import { JobStrategyAnd } from "./JobStrategyAnd";
+import { PipeStrategyBranch } from "./ PipeStrategyBranch";
+import { PipeStrategyTag } from "./ PipeStrategyTag";
+import { PipeStrategyOr } from "./PipeStrategyOr";
+import { PipeStrategyAnd } from "./ PipeStrategyAnd";
 
 
 export function ParseStrategy(model: StategyModel) {
   let stragegyClass = [
-    JobStrategyAnd,
-    JobStrategyOr,
-    JobStrategyAnd,
-    JobStrategyTag,
-    JobStrategyBranch,
+    PipeStrategyAnd,
+    PipeStrategyOr,
+    PipeStrategyAnd,
+    PipeStrategyTag,
+    PipeStrategyBranch,
   ];
   for (let cl of stragegyClass) {
     if (cl.constructor.name != model.class) {

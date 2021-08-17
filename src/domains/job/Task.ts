@@ -5,7 +5,7 @@ import { GitService } from "./GitService";
 import EventEmitter from "events";
 import { UtilitiesService } from "../../UtilitiesService";
 import { ChildProcess, spawn } from "child_process";
-import { JobModel } from "./Job";
+import { StepModel } from "./Step";
 import { Commit } from "../git/Commit";
 export enum TaskStatus {
   PENDING = 1,
@@ -38,7 +38,7 @@ export class Task {
   private bash: ChildProcess;
 
   private name: string;
-  private jobs: JobModel[];
+  private steps: StepModel[];
   private environment: { [key: string]: string };
 
   get status() {
@@ -64,11 +64,11 @@ export class Task {
 
   configure(
     name: string,
-    jobs: JobModel[],
+    steps: StepModel[],
     environment: { [key: string]: string }
   ) {
     this.name = name;
-    this.jobs = jobs;
+    this.steps = steps;
     this.environment = environment;
   }
 
@@ -143,7 +143,7 @@ export class Task {
     return new Promise(async (resolve, reject) => {
       try {
         // spawn bash shell
-        console.log(`START JOB: ${this.name}`);
+        console.log(`START STEP: ${this.name}`);
         this.bash = spawn("/bin/bash", [], {
           // shell: false,
           env: Object.assign(process.env, {
@@ -166,14 +166,14 @@ export class Task {
 
         this.bash.on("close", (code) => {
           console.log(result?.toString());
-          console.log(`END JOB with code ${code}: ${this.name}`);
+          console.log(`END STEP with code ${code}: ${this.name}`);
 
           resolve(result);
         })
-        for (let job of this.jobs) {
+        for (let step of this.steps) {
           for (let script of [
-            'echo "-----------------\nJOB ' + job.name + '\n------------------";',
-            ...job.scripts,
+            'echo "-----------------\nSTEP ' + step.name,
+            ...step.scripts,
             "exit"
           ]) {
             await new Promise((res) => {

@@ -1,14 +1,14 @@
 import { Commit, CommitModel } from "../git/Commit";
-import { Job, JobModel } from "./Job";
+import { Step, StepModel } from "./Step";
 import { StategyModel } from "./strategy/StategyModel";
-import { JobStrategy } from "./strategy/JobStrategy";
+import { PipeStrategy } from "./strategy/PipeStrategy";
 import { Task } from "./Task";
 
 export class PipelineModel {
   id: string;
   name: string;
   strategy: string;
-  jobs: JobModel[];
+  steps: StepModel[];
   lastCommit: CommitModel;
   environment: { [key: string]: string };
 }
@@ -27,8 +27,8 @@ export class Pipeline {
     private id: string,
     private name: string,
     private environment: { [key: string]: string },
-    private strategy: JobStrategy,
-    private jobs: Job[]
+    private strategy: PipeStrategy,
+    private steps: Step[]
   ) { }
 
   isHandle(commit: Commit) {
@@ -46,7 +46,7 @@ export class Pipeline {
   configure(t: Task) {
     t.configure(
       this.name,
-      this.jobs.map(r => r.getModel()),
+      this.steps.map(r => r.getModel()),
       this.environment
     )
   }
@@ -56,7 +56,7 @@ export class Pipeline {
       id: this.id,
       name: this.name,
       strategy: this.strategy.toString(),
-      jobs: this.jobs.map(r => r.getModel()),
+      steps: this.steps.map(r => r.getModel()),
       lastCommit: this.lastCommit?.getModel(),
       environment: this.environment,
     };

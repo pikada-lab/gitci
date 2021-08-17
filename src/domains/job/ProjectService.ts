@@ -1,17 +1,14 @@
 import { Project, ProjectModel } from "./Project";
 import { Pipeline } from "./Pipeline";
-import { JobStrategyBranch } from "./strategy/JobStrategyBranch";
-import { ParseStrategy } from "./strategy/ParseStrategy";
-import { Job } from "./Job";
+import { PipeStrategyBranch } from "./strategy/ PipeStrategyBranch"; 
+import { Step } from "./Step";
 import { UtilitiesService } from "../../UtilitiesService";
 import { GitService } from "./GitService";
 import { mkdir } from "fs/promises";
 import { Watcher } from "./Watcher";
-import { Commit } from "../git/Commit";
-import { Task } from "./Task";
+import { Commit } from "../git/Commit"; 
 import { EventEmitter } from "events";
-import { ConditionParser } from "./strategy/ConditionParser";
-import { pipeline } from "stream";
+import { ConditionParser } from "./strategy/ConditionParser"; 
 
 export class ProjectService {
     private projects: Project[] = [];
@@ -34,8 +31,8 @@ export class ProjectService {
 
             item.pipelines.forEach(pipeline => {
                 const strategy = ConditionParser(pipeline.strategy)
-                const jobs = pipeline.jobs.map(job => new Job(job.name, job.scripts));
-                project.addPipeline(new Pipeline(pipeline.id, pipeline.name, pipeline.environment, strategy, jobs));
+                const steps = pipeline.steps.map(step => new Step(step.name, step.scripts));
+                project.addPipeline(new Pipeline(pipeline.id, pipeline.name, pipeline.environment, strategy, steps));
             })
 
             item.commits.forEach(commit => {
@@ -68,14 +65,14 @@ export class ProjectService {
         );
 
         // из базы данных подгружаем подробности по задачам и работам
-        const strategy = new JobStrategyBranch("master");
-        //new JobStrategyOr(new JobStrategyBranch("dev"), new JobStrategyBranch("test"));
+        const strategy = new PipeStrategyBranch("master");
+        //new PipeStrategyOr(new PipeStrategyBranch("dev"), new PipeStrategyBranch("test"));
         const pipe = new Pipeline(
             this.util.IDGen(),
-            'Test job',
+            'Test pipe',
             { "TOKEN_ICQ": "001.0232927109.1999608478:751212693" },
             strategy,
-            [new Job("Test job", [
+            [new Step("Test pipe", [
                 "npm ci",
                 "npm install typescript",
                 "npm install codecov ",

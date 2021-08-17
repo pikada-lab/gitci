@@ -1,14 +1,11 @@
-import { ChildProcess, spawn } from "child_process";
-
-export interface JobModel {
+export interface StepModel {
     name: string;
     text: string;
     scripts: string[];
 }
 
-export class Job {
-
-    private bash: ChildProcess;
+export class Step {
+ 
     constructor(
         private name: string,
         private scripts: string[]
@@ -19,7 +16,7 @@ export class Job {
         return this.scripts.map(r => "$ " + r).join("\n");
     }
 
-    getModel(): JobModel {
+    getModel(): StepModel {
         return {
             name: this.name,
             text: this.toString(),
