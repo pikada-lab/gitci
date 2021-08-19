@@ -73,12 +73,18 @@ export class NodeCI {
         })
     }
 
+    /**
+     * Получить все проекты
+     * @returns Модели проектов
+     */
     getProjects(): ProjectModel[] {
         return this.getProjectsRef().map(r => r.getModel());
     }
+
     private getProjectsRef() {
         return this.projectService.getProjects()
     }
+
     private getProjectRef(projectId: string) {
         return this.getProjectsRef().filter(r => r.id === projectId)?.[0];
     }
@@ -86,6 +92,7 @@ export class NodeCI {
     getProject(projectId: string): ProjectModel {
         return this.getProjectRef(projectId)?.getModel();
     }
+
     async addPipeline(projectId: string, name: string, strategy: string, environment: { [key: string]: string }) {
 
         if (!name) throw new Error("Name is not exist");

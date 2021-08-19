@@ -8,7 +8,7 @@ export interface CommitModel {
     tag: string;
 }
 
-export class Commit { 
+export class Commit implements CommitModel { 
 
     hash: string = "91ac363652d2d99bbc92d8b27c56fe23b84350f0";
     parent: string[] = [];
@@ -38,9 +38,11 @@ export class Commit {
     }
     setBranch(branch: string) {
         this.branch = branch.replace("*", "").split("\n").map(r => r.trim()).filter(r => r);
+        return this;
     }
     setTag(tag: string) {
         this.tag = tag.trim();
+        return this;
     }
 
     getModel(): CommitModel {
