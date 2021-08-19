@@ -3,9 +3,17 @@ import gitCommits from 'git-commits';
 import streamToPromise from "stream-to-promise";
 import { spawn } from "child_process";
 import run from 'spawn-to-readstream';
-import { join, resolve } from "path";
+import { join } from "path";
 
-export class GitService {
+
+export interface IGitService {
+    getCommitBranch(repoPath: string, commit: Commit): Promise<void>;
+    log(repoPath: string): Promise<Commit[]>;
+    clone(repoPath: string, remoteGitHTTP: string, branch?: string): Promise<string>;
+    gitCommand(repoPath: string, command: string, ...params: string[]): Promise<string>;
+    check(): Promise<boolean>;
+}
+export class GitService implements IGitService {
 
     private versionMajor = 2;
     private versionMinor = 24;
@@ -44,15 +52,12 @@ export class GitService {
 
     private async command(repoPath: string, command: string[]): Promise<Buffer> {
         const arg = [`--git-dir=${repoPath}/.git`, `--work-tree=${repoPath}`].concat(command);
-        // console.log("EXECUTE COMMAND git ", arg);
-        // console.time("ExecuteCommandGit")
         const child = spawn('git', arg);
         const result = await streamToPromise(run(child, this.limitSize));
-        // console.timeEnd("ExecuteCommandGit")
         return result;
     }
 
-    async check() {
+    async check(): Promise<boolean> {
         return new Promise((resolve, reject) => {
             const git = spawn("git", ["--version"]);
             git.stdout.on("data", (chunk: Buffer) => {

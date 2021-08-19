@@ -1,6 +1,6 @@
 
 import { Commit } from "../git/Commit";
-import { GitService } from "./GitService";
+import { IGitService } from "./GitService";
 
 export interface Watcherable {
     getPath(): string;
@@ -21,7 +21,7 @@ export class Watcher {
     private timeLastPull: Date;
     private timer: NodeJS.Timer;
 
-    constructor(private gitService: GitService, private project: Watcherable) {
+    constructor(private gitService: IGitService, private project: Watcherable) {
         this.repoPath = this.project.getPath();
     }
 
@@ -74,32 +74,23 @@ export class Watcher {
         });
     }
 
-    async handle() {
-        // console.log(this.repoPath);
+    async handle() { 
         const branchResult = await this.gitService.gitCommand(this.repoPath, 'branch', '--all');
         this.timeLastPull = new Date();
-        const branch = branchResult.split("\n").filter(r => /^(\*)\s/.test(r))[0].replace("*", "").trim();
-        // console.log("Branch:", branch);
+        const branch = branchResult.split("\n").filter(r => /^(\*)\s/.test(r))[0].replace("*", "").trim(); 
         const response = await this.gitService.gitCommand(this.repoPath, 'pull');
 
         // TODO: NOT GOOD CONDITION
-        if (response.startsWith("Already up to date.")) {
-            // console.log("no pull", branch);
+        if (response.startsWith("Already up to date.")) { 
             // TODO: Add last update time, count, time
+
         } else {
-
-            console.log("execute pull", branch);
-
             const commits = await this.gitService.log(this.repoPath);
-
-            // commits.reverse();
             commits.forEach(commit => {
                 this.project.addCommit(commit);
-            });
-            console.log("END Execute pull", branch);
+            }); 
         }
-
-        // console.log(commits);
+ 
     }
 }
 
