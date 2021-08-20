@@ -1,11 +1,12 @@
 {
   "name": "gitci",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "start": "tsc && node dist/index.js",
     "test": "jasmine src/**.spec.ts",
+    "prettier": "prettier --write src/**/**/*.ts",
     "watch": "ts-node-dev --respawn -- ./node_modules/jasmine/bin/jasmine src/test/*.spec.ts"
   },
   "devDependencies": {

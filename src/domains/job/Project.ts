@@ -27,7 +27,7 @@ export class Project implements Watcherable {
    * ```typescript
    * events.on("commit", (t: Task) => void );
    * ```
-   * 
+   *
    */
   events = new EventEmitter();
 
@@ -35,7 +35,7 @@ export class Project implements Watcherable {
     public id: string,
     private GitURL: string,
     private name: string
-  ) { }
+  ) {}
 
   getRemoteGit() {
     return this.GitURL;
@@ -44,9 +44,10 @@ export class Project implements Watcherable {
   setPath(path: string) {
     this.projectPath = join(
       path,
-      this.GitURL
-        .split("/")[this.GitURL.split("/").length - 1]
-        .replace(".git", "")
+      this.GitURL.split("/")[this.GitURL.split("/").length - 1].replace(
+        ".git",
+        ""
+      )
     );
   }
 
@@ -63,7 +64,7 @@ export class Project implements Watcherable {
   }
 
   removePipeline(pipeId: string) {
-    this.pipelines = this.pipelines.filter(r => r.getId() != pipeId);
+    this.pipelines = this.pipelines.filter((r) => r.getId() != pipeId);
   }
 
   addCommit(commit: Commit) {

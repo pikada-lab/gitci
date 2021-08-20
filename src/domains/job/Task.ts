@@ -29,7 +29,7 @@ export class Task {
   private error: string;
   /**
    * События выполняемой задачи
-   * 
+   *
    * ```typescript
    * events.on("changeStatus", (task: Task, oldStatus: TaskStatus, newStatus: TaskStatus) => void)
    * ```
@@ -52,10 +52,7 @@ export class Task {
     this.events.emit("changeStatus", this, oldStatus, status);
   }
 
-  constructor(
-    private remoteGit: string,
-    private commit: Commit
-  ) {
+  constructor(private remoteGit: string, private commit: Commit) {
     this.path = join(
       tmpdir(),
       Math.round(Math.random() * 100000000).toString(16)
@@ -72,9 +69,8 @@ export class Task {
     this.environment = environment;
   }
 
-
   getName() {
-    return "Task " + this.id + " | " + this.name
+    return "Task " + this.id + " | " + this.name;
   }
 
   getModel(): TaskModel {
@@ -82,27 +78,21 @@ export class Task {
       path: this.path,
       status: this.status,
       error: this.error,
-
     };
   }
 
   async prepare(gitService: GitService, utilService: UtilitiesService) {
-
-    this.id = utilService.IDGen()
+    this.id = utilService.IDGen();
     try {
       if (this.status != TaskStatus.PENDING)
         throw new Error("Обратный порядок работы задач");
       this.status = TaskStatus.PREPARING;
       await mkdir(this.path, 0o777);
 
-      await gitService.clone(
-        this.path,
-        this.remoteGit,
-        this.commit.branch[0]
-      );
+      await gitService.clone(this.path, this.remoteGit, this.commit.branch[0]);
       const dir = this.remoteGit
         .split("/")
-      [this.remoteGit.split("/").length - 1].replace(".git", "");
+        [this.remoteGit.split("/").length - 1].replace(".git", "");
       this.path = join(this.path, dir);
       await gitService.gitCommand(
         this.path,
@@ -117,11 +107,11 @@ export class Task {
   }
   async start() {
     try {
-      const timeout = setTimeout(_ => {
+      const timeout = setTimeout((_) => {
         this.stop();
-        this.error = 'Timeout ' + this.timeout;
+        this.error = "Timeout " + this.timeout;
         this.status = TaskStatus.ERROR;
-      }, this.timeout)
+      }, this.timeout);
       this.status = TaskStatus.BUILDING;
       await this.execute(this.path);
       this.status = TaskStatus.FINISHED;
@@ -138,7 +128,6 @@ export class Task {
   }
 
   async execute(path: string) {
-
     let result = "";
     return new Promise(async (resolve, reject) => {
       try {
@@ -146,20 +135,24 @@ export class Task {
         console.log(`START STEP: ${this.name}`);
         this.bash = spawn("/bin/bash", [], {
           // shell: false,
-          env: Object.assign(process.env, {
-            "NODE_ENV": 'debug'
-          }, this.environment),
-          cwd: path
+          env: Object.assign(
+            process.env,
+            {
+              NODE_ENV: "debug",
+            },
+            this.environment
+          ),
+          cwd: path,
         });
 
         this.bash.stdout.on("data", (text) => {
-          result += text.toString('utf8');
-          console.log(text?.toString("utf8"))
+          result += text.toString("utf8");
+          console.log(text?.toString("utf8"));
         });
 
         this.bash.stderr.on("data", (err) => {
           result += "> " + err?.toString("utf8") + "\n";
-          console.log(err?.toString("utf8"))
+          console.log(err?.toString("utf8"));
           this.bash.kill(1);
           reject(err);
         });
@@ -169,19 +162,19 @@ export class Task {
           console.log(`END STEP with code ${code}: ${this.name}`);
 
           resolve(result);
-        })
+        });
         for (let step of this.steps) {
           for (let script of [
             'echo "-----------------\nSTEP ' + step.name,
             ...step.scripts,
-            "exit"
+            "exit",
           ]) {
             await new Promise((res) => {
               setTimeout(() => {
                 result += "$ " + script + "\n";
                 this.bash.stdin.write(script + "\n\n");
                 res(true);
-              }, 10)
+              }, 10);
             });
           }
         }
@@ -189,10 +182,8 @@ export class Task {
         this.error = ex.message;
         resolve(result);
       }
-    })
-
+    });
   }
-
 
   getError() {
     return this.error;

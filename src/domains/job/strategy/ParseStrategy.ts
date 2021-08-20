@@ -20,8 +20,7 @@ export function ParseStrategy(model: StategyModel) {
       return new cl(model.property as any);
     }
     if (Array.isArray(model.property)) {
-      let params = model.property.map((chiledStrategy) => ParseStrategy(chiledStrategy)
-      );
+      let params = model.property.map((chiledStrategy) => ParseStrategy(chiledStrategy));
       return new cl(params as any);
     }
     let params = ParseStrategy(model.property as StategyModel);

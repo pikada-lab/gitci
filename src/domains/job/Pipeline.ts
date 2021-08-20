@@ -29,7 +29,7 @@ export class Pipeline {
     private environment: { [key: string]: string },
     private strategy: PipeStrategy,
     private steps: Step[]
-  ) { }
+  ) {}
 
   getId() {
     return this.id;
@@ -42,7 +42,7 @@ export class Pipeline {
       this.lastCommit = commit;
       return true;
     } catch (ex) {
-      console.log(commit, this)
+      console.log(commit, this);
       return false;
     }
   }
@@ -50,9 +50,9 @@ export class Pipeline {
   configure(t: Task) {
     t.configure(
       this.name,
-      this.steps.map(r => r.getModel()),
+      this.steps.map((r) => r.getModel()),
       this.environment
-    )
+    );
   }
 
   getModel(): PipelineModel {
@@ -60,7 +60,7 @@ export class Pipeline {
       id: this.id,
       name: this.name,
       strategy: this.strategy.toString(),
-      steps: this.steps.map(r => r.getModel()),
+      steps: this.steps.map((r) => r.getModel()),
       lastCommit: this.lastCommit?.getModel(),
       environment: this.environment,
     };
@@ -70,9 +70,6 @@ export class Pipeline {
     this.steps.push(step);
   }
   removeStep(stepId: string) {
-    this.steps = this.steps.filter(r => r.getID() != stepId);
+    this.steps = this.steps.filter((r) => r.getID() != stepId);
   }
-
 }
-
-
