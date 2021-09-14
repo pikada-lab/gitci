@@ -132,7 +132,7 @@ export class Task {
     return new Promise(async (resolve, reject) => {
       try {
         // spawn bash shell
-        console.log(`START STEP: ${this.name}`);
+        console.log(`START Pipeline: ${this.name}`);
         this.bash = spawn("/bin/bash", [], {
           // shell: false,
           env: Object.assign(
@@ -146,10 +146,8 @@ export class Task {
         });
 
         this.bash.stdout.on("data", (text) => {
-          result += text.toString("utf8");
-          console.log(text?.toString("utf8"));
+          console.log(">>>>>", Buffer.from(text, "utf-8")?.toString("utf8"));
         });
-
         this.bash.stderr.on("data", (err) => {
           result += "> " + err?.toString("utf8") + "\n";
           console.log(err?.toString("utf8"));
@@ -157,27 +155,25 @@ export class Task {
           reject(err);
         });
 
-        this.bash.on("close", (code) => {
+        this.bash.stdout.on("close", (code) => {
           console.log(result?.toString());
-          console.log(`END STEP with code ${code}: ${this.name}`);
+          console.log(`END Pipeline with code ${code ?? 0}: ${this.name}`);
 
           resolve(result);
         });
+        const commands = [];
         for (let step of this.steps) {
           for (let script of [
-            'echo "-----------------\nSTEP ' + step.name,
+            'echo "## STEP ' + step.name + '"',
             ...step.scripts,
             "exit",
           ]) {
-            await new Promise((res) => {
-              setTimeout(() => {
-                result += "$ " + script + "\n";
-                this.bash.stdin.write(script + "\n\n");
-                res(true);
-              }, 10);
-            });
+            commands.push(script);
+            result += "$ " + script + "\n";
           }
         }
+        console.log(commands.join(" && ") + "\n\n");
+        this.bash.stdin.write(commands.join(" && ") + "\n\n");
       } catch (ex) {
         this.error = ex.message;
         resolve(result);
